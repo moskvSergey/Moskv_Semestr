@@ -12,23 +12,23 @@ var avialable_currencies = ["USD", "AED", "AFN", "ALL", "AMD", "ANG", "AOA", "AR
 
 
 class MainPage {
-  constructor() {
-	clearBody();
-    this.convertButton = document.createElement("button");
-    this.convertButton.innerHTML = "Конвертация";
-    this.convertButton.addEventListener("click", () =>{
-		new ConvertPage();
-	});
+    constructor() {
+		clearBody();
+		this.convertButton = document.createElement("button");
+		this.convertButton.innerHTML = "Конвертация";
+		this.convertButton.addEventListener("click", () =>{
+			new ConvertPage();
+		});
 
-    this.currencyButton = document.createElement("button");
-    this.currencyButton.innerHTML = "Курс валют";
-    this.currencyButton.addEventListener("click", () =>{
-		new CursePage();
-	});
+		this.currencyButton = document.createElement("button");
+		this.currencyButton.innerHTML = "Курс валют";
+		this.currencyButton.addEventListener("click", () =>{
+			new CursePage();
+		});
 	
-    document.body.appendChild(this.convertButton);
-    document.body.appendChild(this.currencyButton);
-  }
+		document.body.appendChild(this.convertButton);
+		document.body.appendChild(this.currencyButton);
+	}
 }
 
 
@@ -43,11 +43,12 @@ class ConvertPage {
 
         this.convertButton = document.createElement("button");
         this.convertButton.innerHTML = "Конвертировать";
-        this.convertButton.addEventListener("click", (e) => {
+        this.convertButton.addEventListener("click", async (e) => {
             const amount = parseFloat(this.currencyAmount.value);
             const from = this.currencyFrom.value;
             const to = this.currencyTo.value;
-            alert(`Результат конвертации ${amount} ${from} в ${to} равен ${calculate(amount, from, to)}.`);
+			let calc = await calculate(amount, from, to)
+            alert(`Результат конвертации ${amount} ${from} в ${to} равен ${calc}.`);
         });
 		
         this.backButton = document.createElement("button");
@@ -65,7 +66,7 @@ class ConvertPage {
         document.body.appendChild(div);
     }
   
-    createCurrencySelect() {
+    async createCurrencySelect() {
         this.currencyFrom = document.createElement('select');
 	    this.currencyTo = document.createElement('select');
 	
@@ -86,52 +87,55 @@ class ConvertPage {
 class CursePage {
 	constructor() {
 		clearBody();
-	
 		this.currencies = avialable_currencies;
+		this.createPageContainer();
 		this.createCurrencySelect();
 		this.createNextButton();
 		this.createBackButton();
-		this.createPageContainer();
-    }
-  
-	createCurrencySelect() {
-		this.currencySelect = document.createElement('select');
+	}
+
+	async createCurrencySelect() {
+		this.currencySelect = document.createElement("select");
 		for (let i = 0; i < this.currencies.length; i++) {
-			const currencyOption = document.createElement('option');
+			const currencyOption = document.createElement("option");
 			currencyOption.value = avialable_currencies[i];
 			currencyOption.innerText = avialable_currencies[i];
 			this.currencySelect.appendChild(currencyOption);
 		}
-    }
-  
-	createNextButton() {
-		this.nextButton = document.createElement('button');
-		this.nextButton.innerText = 'Далее';
-		this.nextButton.addEventListener('click', () => {
+	}
+
+	async createNextButton() {
+		this.nextButton = document.createElement("button");
+		this.nextButton.innerText = "Далее";
+		this.nextButton.addEventListener("click", async () => {
 			const selectedCurrency = this.currencySelect.value;
 			const ratesTable = new ExchangeRatesTable(selectedCurrency);
-			ratesTable.generateTable();
+			await ratesTable.generateTable();
 		});
-    }
-	
-	createBackButton(){
-		this.backButton = document.createElement("button");
-        this.backButton.innerHTML = "Назад";
-        this.backButton.addEventListener("click", (e) => {
-            new MainPage();
-        });
 	}
-  
-	createPageContainer() {
-		this.pageContainer = document.createElement('div');
-		this.pageContainer.appendChild(document.createElement('p')).innerText = 'Выберите валюту:';
+
+	async createBackButton() {
+		this.backButton = document.createElement("button");
+		this.backButton.innerHTML = "Назад";
+		this.backButton.addEventListener("click", () => {
+			new MainPage();
+		});
+	}
+
+	async createPageContainer() {
+		this.pageContainer = document.createElement("div");
+		this.pageContainer.appendChild(document.createElement("p")).innerText =
+			"Выберите валюту:";
+		await this.createCurrencySelect();
 		this.pageContainer.appendChild(this.currencySelect);
-		this.pageContainer.appendChild(document.createElement('br'));
-		this.pageContainer.appendChild(document.createElement('br'));
+		this.pageContainer.appendChild(document.createElement("br"));
+		this.pageContainer.appendChild(document.createElement("br"));
+		await this.createNextButton();
+		await this.createBackButton();
 		this.pageContainer.appendChild(this.nextButton);
 		this.pageContainer.appendChild(this.backButton);
 		document.body.appendChild(this.pageContainer);
-    }
+	}
 }
 
 
@@ -143,30 +147,30 @@ class ExchangeRatesTable {
 		this.rateContainer.setAttribute('id', 'rate-container');
 		
 		this.backButton = document.createElement("button");
-        this.backButton.innerHTML = "Назад";
-        this.backButton.addEventListener("click", (e) => {
-            new MainPage();
-        });
+		this.backButton.innerHTML = "Назад";
+		this.backButton.addEventListener("click", async (e) => {
+			await new MainPage();
+		});
 		
 		this.rateContainer.appendChild(this.backButton)
 		document.body.appendChild(this.rateContainer);
-    }
+	}
 
-	generateTable() {
+	async generateTable() {
 		const table = document.createElement('table');
 		table.setAttribute('border', '3px');
 
-		const exchangeRates = getAllExchangeRates(this.baseCurrency);
+		const exchangeRates = await getAllExchangeRates(this.baseCurrency);
 
 		const header = table.createTHead();
 		const row = header.insertRow();
 		const headers = ['Currency', 'Exchange Rate'];
 
 		headers.forEach((headerText) => {
-		const headerRow = document.createElement('th');
-		const textNode = document.createTextNode(headerText);
-		headerRow.appendChild(textNode);
-		row.appendChild(headerRow);
+			const headerRow = document.createElement('th');
+			const textNode = document.createTextNode(headerText);
+			headerRow.appendChild(textNode);
+			row.appendChild(headerRow);
 		});
 
 		const tBody = table.createTBody();
@@ -176,14 +180,14 @@ class ExchangeRatesTable {
 		const checkbox = document.createElement('input');
 		checkbox.type = 'checkbox';
 		checkbox.id = 'sort-alphabetically';
-		checkbox.addEventListener('click', () => {
+		checkbox.addEventListener('click', async () => {
 			if (checkbox.checked) {
 				let sortedExchangeRates = Object.entries(exchangeRates).sort((a, b) => b[1] - a[1]);
 				sortedCurrencies = sortedExchangeRates.map(i => i[0]);
 			} else {
 				sortedCurrencies = sortedCurrencies.sort();
 			}
-		this.updateTable(tBody, sortedCurrencies, exchangeRates);
+			await this.updateTable(tBody, sortedCurrencies, exchangeRates);
 		});
 
 		const checkboxLabel = document.createElement('label');
@@ -193,26 +197,26 @@ class ExchangeRatesTable {
 		this.rateContainer.appendChild(checkbox);
 		this.rateContainer.appendChild(checkboxLabel);
 
-		this.updateTable(tBody, sortedCurrencies, exchangeRates);
+		await this.updateTable(tBody, sortedCurrencies, exchangeRates);
 
 		this.rateContainer.appendChild(table);
 	}
 
-	updateTable(tBody, sortedCurrencies, exchangeRates) {
+	async updateTable(tBody, sortedCurrencies, exchangeRates) {
 		tBody.innerHTML = '';
 
 		sortedCurrencies.forEach((currency) => {
-		const row = tBody.insertRow();
-		const cell1 = row.insertCell();
-		const cell2 = row.insertCell();
-		cell1.textContent = currency;
-		cell2.textContent = exchangeRates[currency];
+			const row = tBody.insertRow();
+			const cell1 = row.insertCell();
+			const cell2 = row.insertCell();
+			cell1.textContent = currency;
+			cell2.textContent = exchangeRates[currency];
 		});
 	}
 }
 
 
-function clearBody(){
+async function clearBody(){
 	const body = document.getElementsByTagName('body')[0];
 	while (body.firstChild) {
         body.removeChild(body.firstChild);
@@ -221,7 +225,7 @@ function clearBody(){
 
 
 //просто main функция для красоты
-(function(){
+(async function(){
 	const nameInput = document.getElementById('name-input');
 	const nextButton = document.getElementById('next-button');
 
@@ -231,6 +235,3 @@ function clearBody(){
 		new MainPage();
     });
 }());
-
-//const exchangeRatesTable = new ExchangeRatesTable('USD');
-//exchangeRatesTable.generateTable();

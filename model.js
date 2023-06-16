@@ -177,25 +177,22 @@ const jsonn = `{
   }
 }`
 
-function httpGet(url) {
-  const xmlHttp = new XMLHttpRequest();
-  xmlHttp.open('GET', url, false);
-  xmlHttp.send(null);
-  return xmlHttp.responseText;
+async function httpGet(url) {
+  const response = await fetch(url);
+  const jsonResponse = await response.json();
+  return jsonResponse;
 }
 
 
-function getAllExchangeRates(baseCurrency) {
+async function getAllExchangeRates(baseCurrency) {
   let url = `https://openexchangerates.org/api/latest.json?app_id=${appId}`;
-  //const json = JSON.parse(jsonn);
-  const json = JSON.parse(httpGet(url));
+  const json = await httpGet(url);
   const rates = json.rates;
   return rates;
 }
 
-
-function calculate(amount, fromCurrency, toCurrency) {
-  var rates = getAllExchangeRates(fromCurrency);
+async function calculate(amount, fromCurrency, toCurrency) {
+  var rates = await getAllExchangeRates(fromCurrency);
   var convertFrom = 1 / rates[fromCurrency];
   var convertedTo = rates[toCurrency];
   return (convertedTo * convertFrom * amount).toFixed(2);
