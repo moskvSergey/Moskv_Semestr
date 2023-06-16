@@ -185,16 +185,6 @@ function httpGet(url) {
 }
 
 
-function getExchangeRate(baseCurrency, targetCurrency) {
-  const url = 'https://openexchangerates.org/api/latest.json?app_id=${appId}';
-  const json = JSON.parse(httpGet(url));
-  
-  //const json = JSON.parse(jsonn);
-  const rate = json.rates[targetCurrency];
-  return rate;
-}
-
-
 function getAllExchangeRates(baseCurrency) {
   let url = `https://openexchangerates.org/api/latest.json?app_id=${appId}`;
   //const json = JSON.parse(jsonn);
@@ -204,4 +194,9 @@ function getAllExchangeRates(baseCurrency) {
 }
 
 
-
+function calculate(amount, fromCurrency, toCurrency) {
+  var rates = getAllExchangeRates(fromCurrency);
+  var convertFrom = 1 / rates[fromCurrency];
+  var convertedTo = rates[toCurrency];
+  return (convertedTo * convertFrom * amount).toFixed(2);
+}
